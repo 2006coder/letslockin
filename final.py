@@ -5,7 +5,7 @@ from keras.src.saving import load_model
 import time
 
 # load my model :)
-model = load_model('af_raf_ck_model/emo-model.keras')
+model = load_model('afrafck_model/thisworks.h5')
 
 # convert a frame in to a square (fill empty space with some black color)
 def expand_to_square(image):
@@ -27,9 +27,6 @@ def expand_to_square(image):
         new_image = cv2.copyMakeBorder(image, 0, 0, left, right, cv2.BORDER_CONSTANT, value=[0, 0, 0])
         new_image = cv2.resize(new_image, (h, h))
     return new_image
-
-
-
 global emotion_val
 global not_stressed_val
 global stressed_val
@@ -119,9 +116,7 @@ with mp_face_mesh.FaceMesh(
                 After we have the distance, we can warn user if they are not focus on their work.
             """
             frameWidth = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
-            print(frameWidth)
             frameHeight = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
-            print(frameHeight)
             camera_size = frameWidth*frameHeight
             distance = (((cx_max-cx_min)*(cy_max-cy_min))*100//camera_size)
             cv2.putText(image, str(distance), (cx_min, cy_min - 120), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 0), 10, cv2.LINE_AA)
@@ -145,7 +140,7 @@ with mp_face_mesh.FaceMesh(
                 emotion_prediction = model.predict(face_region_gray)
 
                 # labels
-                emotion_dict = {0: 'Neutral', 1: 'Happy', 2: 'Sad', 3: 'Surprise', 4: 'Fear', 5: 'Disgusted', 6: 'Angry', 7: 'Scornful'}
+                emotion_dict = {0: 'Neutral', 1: 'Happy', 2: 'Sad', 3: 'Surprise', 4: 'Fear', 5: 'Disgusted', 6: 'Angry'}
 
                 # get sorted emotions with the according confidence
                 sorted_emotions = sorted(zip(emotion_dict.values(), emotion_prediction[0]), key=lambda x: x[1], reverse=True)
@@ -173,20 +168,16 @@ with mp_face_mesh.FaceMesh(
                 most_confident_emotion = sorted_emotions[0][0]
                 cv2.putText(image, most_confident_emotion, (cx_min, cy_min - 40), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 0), 10, cv2.LINE_AA)
 
-
-
-                    
-                if most_confident_emotion in ['Happy', 'Neutral', 'Surprise', 'Scornful']:
-                    not_stressed_val+=1
+                if most_confident_emotion in ['Happy', 'Neutral', 'Surprise']:
+                    stressed_val+=1
                     steps_print_val+=1
                 else:
-                    not_stressed_val-=1
+                    stressed_val-=1
                     steps_print_val+=1
-                emotion_val=(not_stressed_val+stressed_val)/steps_print_val
-                emotion_val=(not_stressed_val+stressed_val)/steps_print_val
-                print(emotion_val)
+                emotion_val=stressed_val/steps_print_val
+                emotion_val=stressed_val/steps_print_val
 
-                if (steps_print_val==12) and emotion_val<=(-0.6):
+                if (steps_print_val==25) and emotion_val<=(0.3):
                     stress_status = 1
                     start_time = time.time()
                     print()
@@ -196,7 +187,7 @@ with mp_face_mesh.FaceMesh(
                     print('Please relax a little bit!')
                 
                     
-                if (steps_print_val>12) and emotion_val>(-0.6):
+                if (steps_print_val>25) and emotion_val>(0.3):
                     reset_values_by_Bach()
                 if stress_status == 1:
                     end_time = time.time()
@@ -204,9 +195,9 @@ with mp_face_mesh.FaceMesh(
                     print(end_time)
                     cv2.putText(image, 'You are stressed!', (cx_min, cy_min - 180), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 0), 10, cv2.LINE_AA)
                     print(end_time-start_time)
-                    if end_time - start_time == 2:
+                    if end_time - start_time >= 1:
                         reset_values_by_Bach()
-                cv2.putText(image, str(not_stressed_val), (cx_min, cy_min - 280), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 0), 10, cv2.LINE_AA)
+                cv2.putText(image, str(emotion_val), (cx_min, cy_min - 280), cv2.FONT_HERSHEY_SIMPLEX, 3, (255, 255, 0), 10, cv2.LINE_AA)
                 
                 # info on the top left corner
                 for i, (emotion, confidence) in enumerate(sorted_emotions):
@@ -229,5 +220,3 @@ with mp_face_mesh.FaceMesh(
         break
 cap.release()
 cv2.destroyAllWindows()
-
-# Try to look at the wrong labeled frame and try to change in dataset
