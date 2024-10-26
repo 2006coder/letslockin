@@ -1,11 +1,15 @@
 import cv2
 import mediapipe as mp
 import numpy as np
-from keras.src.saving import load_model
+import tensorflow as tf
+from keras.models import load_model
+# above is the import method for tensorflow 2.15.0 and keras 2.15.0
+# for keras 3.6.0 and tensorflow 2.17.0, the method is from keras.src.saving import load_model
+# I downgraded the tensorflow library and also the python version in order for tensorflowjs to work.
 import time
 
 # load my model :)
-model = load_model('afrafck_model/thisworks.h5')
+model = load_model('v2_afrafck_model/thisworks.h5')
 
 # convert a frame in to a square (fill empty space with some black color)
 def expand_to_square(image):

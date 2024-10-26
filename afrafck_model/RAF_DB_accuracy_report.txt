@@ -1,9 +1,0 @@
-Accuracy per category:
-neutral: 75.441%
-happy: 91.646%
-sad: 85.146%
-surprise: 89.666%
-fear: 48.649%
-disgust: 40.625%
-angry: 72.222%
-Overall Accuracy: 82.106%
